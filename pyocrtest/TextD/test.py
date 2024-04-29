@@ -3,67 +3,57 @@ import easyocr
 import numpy as np
 import re
 
-# Read the image
-image_path = '/Users/pc/Desktop/code/pyocrtest/photo/img1.jpeg'
-img = cv.imread(image_path)
+def preprocess_image(image_path):
+    """Resmi okur, gri tonlamaya dönüştürür, parlaklığı artırır ve kontrastı artırır."""
+    img = cv.imread(image_path)
+    gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    brightened_img = cv.addWeighted(gray_img, 1.5, np.zeros_like(gray_img), 0, 0)
+    contrast_img = cv.convertScaleAbs(brightened_img, alpha=1.5, beta=0)
+    white_canvas = np.ones_like(contrast_img) * 255
+    combined_img = np.hstack((contrast_img, white_canvas))
+    return combined_img, contrast_img.shape[1]
 
-# Convert the image to grayscale
-gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+def detect_and_draw_text(image, reader, product_pattern, img_width):
+    """Metni tespit eder ve çizer."""
+    try:
+        result = reader.readtext(image)
+        thres = 0.01
+        previous_bottom = 0
+        for detection in result:
+            bbox, text, score = detection
+            if score > thres:
+                try:
+                    cv.rectangle(image, (bbox[0][0], bbox[0][1]), (bbox[2][0], bbox[2][1]), (0, 255, 0), 2)
+                    match = re.match(product_pattern, text)
+                    if match:
+                        product_name = match.group(1)
+                        vat_rate = match.group(2)
+                        price = match.group(3)
+                        formatted_text = f'{product_name} - {vat_rate}% - {price}'
+                        text_position = (bbox[0][0] + img_width, previous_bottom)
+                        cv.putText(image, formatted_text, text_position, cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                    else:
+                        text_position = (bbox[0][0] + img_width, previous_bottom)
+                        cv.putText(image, text, text_position, cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                    previous_bottom = text_position[1] + 20
+                except Exception as e:
+                    print("Error while drawing bounding box:", e)
+        cv.imshow('Detected Text', image)
+        cv.waitKey(0)
+        cv.destroyAllWindows()
+    except Exception as e:
+        print("An error occurred:", e)
 
-# Increase the brightness of the grayscale image
-brightened_img = cv.addWeighted(gray_img, 1.5, np.zeros_like(gray_img), 0, 0)
+def main():
+    """Ana işlem fonksiyonu."""
+    try:
+        image_path = '/Users/pc/Desktop/code/pyocrtest/photo/img1.jpeg'
+        reader = easyocr.Reader(['en'], gpu=False)
+        product_pattern = re.compile(r'(.+)\s+(\d+)%\s+(-?\d+\.\d+)')
+        combined_img, img_width = preprocess_image(image_path)
+        detect_and_draw_text(combined_img.copy(), reader, product_pattern, img_width)
+    except Exception as e:
+        print("An error occurred:", e)
 
-# Increase the contrast of the brightened image
-contrast_img = cv.convertScaleAbs(brightened_img, alpha=1.5, beta=0)
-
-# Create a white image as a canvas for text
-white_canvas = np.ones_like(contrast_img) * 255  # Creating a white image of the same size as the input image
-
-# Combine original image and white canvas horizontally
-combined_img = np.hstack((contrast_img, white_canvas))
-
-# Create an instance of text reader
-reader = easyocr.Reader(['en'], gpu=False)
-
-# Define regex pattern to extract product name, VAT rate, and price
-product_pattern = re.compile(r'(.+)\s+(\d+)%\s+(-?\d+\.\d+)')  # Product Name VAT_rate Price
-
-# Detect text
-try:
-    result = reader.readtext(image_path)
-
-    thres = 0.01
-
-    # Draw text and box
-    previous_bottom = 0
-    for detection in result:
-        bbox, text, score = detection
-
-        if score > thres:
-            try:
-                cv.rectangle(combined_img, (bbox[0][0], bbox[0][1]), (bbox[2][0], bbox[2][1]), (0, 255, 0), 2)
-                
-                # Check if the current text matches the product pattern
-                match = re.match(product_pattern, text)
-                if match:
-                    product_name = match.group(1)
-                    vat_rate = match.group(2)
-                    price = match.group(3)
-                    formatted_text = f'{product_name} - {vat_rate}% - {price}'
-                    text_position = (bbox[0][0] + contrast_img.shape[1], previous_bottom)  # Adjust the space here
-                    cv.putText(combined_img, formatted_text, text_position, cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                else:
-                    text_position = (bbox[0][0] + contrast_img.shape[1], previous_bottom)  # Adjust the space here
-                    cv.putText(combined_img, text, text_position, cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                
-                # Update previous bottom for the next text
-                previous_bottom = text_position[1] + 20  # Adjust the space here
-            except Exception as e:
-                print("Error while drawing bounding box:", e)
-    # Show the image
-    cv.imshow('Detected Text', combined_img)
-    cv.waitKey(0)
-    cv.destroyAllWindows()
-
-except Exception as e:
-    print("An error occurred:", e)
+if __name__ == "__main__":
+    main()
