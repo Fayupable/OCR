@@ -1,10 +1,11 @@
 # List of meat cuts in Turkish
 yemek_isimleri = """
-Write to add new items to the list.
+
+
 """
 
 # Path to the file where meat cuts will be stored
-dosya_adi = "" # Write the path to the file name where the list will be stored
+dosya_adi = ".txt" # Write the path to the file name where the list will be stored
 
 # Attempt to read the existing file or create a new one if it does not exist
 try:
