@@ -1,19 +1,15 @@
-
 Antrikot
 Baget
 Bonfile
-Bosluk
 Boyun
 Ciğer
 Dana Incik
 Döş
-Fileto
 Gerdan
 Göğüs
 İncik
 Kalp
 Kanat
-Kol
 Kontnuar
 Kontrfile
 Kuşbaşı
@@ -22,7 +18,6 @@ Kıyma
 Nuar
 Pençeta
 Piliç But
-Pirzola
 Puli
 Sokum
 Taşlık
