@@ -1,6 +1,23 @@
 import os
 from PIL import Image, ImageFilter, ImageEnhance
 import pytesseract
+import re
+
+class OcrImage:
+    def __init__(self, ocr_text):
+        self.ocr_text = ocr_text
+
+    def extract_product_info(self):
+        product_info = {}
+        lines = self.ocr_text.split('\n')
+        for line in lines:
+            # Assuming product names are capitalized and prices are in the format of $xx.xx
+            match = re.search(r'([A-Z][a-z]+)\s+\$(\d+\.\d+)', line)
+            if match:
+                product_name = match.group(1)
+                price = float(match.group(2))
+                product_info[product_name] = price
+        return product_info
 
 class TextComparer:
     def __init__(self, text_file, ocr_text):
@@ -81,7 +98,6 @@ word_file_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/TextD/b/words.txt'
 with open('output.txt', 'r') as f:
     existing_content = f.read()
 
-# Open the output text file in append mode
 with open('output.txt', 'a') as f:
     # Process each photo for OCR without saving
     for photo_name, photo_path in photo_paths.items():
@@ -100,3 +116,8 @@ with open('output.txt', 'a') as f:
             f.write(f'OCR Result for {photo_name}:\n')
             f.write(ocr_result)
             f.write('\n----------------\n')
+
+        # Extract product info from the OCR result
+        ocr_image = OcrImage(ocr_result)
+        product_info = ocr_image.extract_product_info()
+        print(product_info)

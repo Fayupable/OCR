@@ -4,7 +4,7 @@ import numpy as np
 import re
 
 # Read the image
-image_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/photo_imp/preprocessed_img1.jpeg'
+image_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos/20.png'
 img = cv.imread(image_path)
 
 # Convert the image to grayscale
@@ -49,7 +49,7 @@ try:
                 
                 # Update previous bottom for the next text
                 previous_bottom = text_position[1] + 20  # Adjust the space here
-                print(text)
+                # print(text)
 
             
             except Exception as e:

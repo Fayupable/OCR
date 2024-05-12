@@ -69,7 +69,7 @@ def display_and_save_output(products_and_prices, original_text):
 
 def test():
     # Replace 'image_path' with the path to your image file
-    products_and_prices, ocr_text = ocr_image('/Users/pc/Documents/GitHub/OCR/preprocessed_Screenshot 2024-05-10 at 09.35.03.png')
+    products_and_prices, ocr_text = ocr_image('/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos/35.jpeg')
 
     # Display the output in a Tkinter window and save to a file
     display_and_save_output(products_and_prices, ocr_text)
