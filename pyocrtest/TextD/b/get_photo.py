@@ -1,7 +1,40 @@
 import os
 from PIL import Image, ImageFilter, ImageEnhance
 import pytesseract
-import fuzz # type: ignore
+
+class TextComparer:
+    def __init__(self, text_file, ocr_text):
+        self.text_file = text_file
+        self.ocr_text = ocr_text.split()
+
+    def levelshtein_distance(self,s1,s2):
+        if len(s1) > len(s2):
+            s1,s2 = s2,s1
+        distances = range(len(s1) + 1)
+        for index2,char2 in enumerate(s2):
+            newDistances = [index2+1]
+            for index1,char1 in enumerate(s1):
+                if char1 == char2:
+                    newDistances.append(distances[index1])
+                else:
+                    newDistances.append(1 + min((distances[index1], distances[index1 + 1], newDistances[-1])))
+            distances = newDistances
+        return distances[-1]
+    def normalized_levenshtein_distance(self,s1,s2):
+        return self.levelshtein_distance(s1,s2) / max(len(s1), len(s2))
+    
+    def correct_ocred_text(self,threshold=0.8):
+        with open(self.text_file, 'r') as f:
+            text = f.read()
+        text = text.split()
+        for word in text:
+            for ocr_word in self.ocr_text:
+                
+                if self.normalized_levenshtein_distance(word,ocr_word) < threshold:
+                    return ocr_word
+        return None
+
+
 
 
 
@@ -40,62 +73,30 @@ class PreprocessImg:
         return image
 
 
-class OCRProcessor:
-    def __init__(self, photo_paths, output_file, word_directory):
-        self.photo_paths = photo_paths
-        self.output_file = output_file
-        self.word_directory = word_directory
-        self.words = self.get_words_from_txt_files()
-
-    def get_words_from_txt_files(self):
-        words = []
-        for filename in os.listdir(self.word_directory):
-            if filename.endswith('.txt'):
-                with open(os.path.join(self.word_directory, filename), 'r') as f:
-                    words.extend(f.read().split())
-        return words
-
-    def get_best_match(self, ocr_result):
-        best_match = None
-        best_ratio = 0
-        for word in self.words:
-            ratio = fuzz.ratio(ocr_result.lower(), word.lower())
-            if ratio > best_ratio:
-                best_ratio = ratio
-                best_match = word
-        return best_match if best_ratio > 85 else ocr_result
-
-    def process_photos(self):
-        # Read the existing content of the output text file
-        with open(self.output_file, 'r') as f:
-            existing_content = f.read()
-
-        # Open the output text file in append mode
-        with open(self.output_file, 'a') as f:
-            # Process each photo for OCR without saving
-            for photo_name, photo_path in self.photo_paths.items():
-                # Create a PreprocessImg instance for the photo
-                preprocessor = PreprocessImg(photo_path)
-                
-                # Preprocess the image in memory
-                processed_image = preprocessor.preprocess_image()
-                
-                # Directly use the preprocessed image for OCR
-                ocr_result = pytesseract.image_to_string(processed_image)
-                best_match = self.get_best_match(ocr_result)
-                
-                # Check if the OCR result is already in the file
-                if best_match not in existing_content:
-                    # Write the OCR result to the text file
-                    f.write(f'OCR Result for {photo_name}:\n')
-                    f.write(best_match)
-                    f.write('\n----------------\n')
-
 # Get the list of photo paths
 photo_paths = PhotoPaths('/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos').get_photo_paths()
+word_file_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/TextD/b/words.txt'
 
-# Create an OCRProcessor instance
-ocr_processor = OCRProcessor(photo_paths, 'output.txt', '/path/to/your/txt/files')
+# Read the existing content of the output text file
+with open('output.txt', 'r') as f:
+    existing_content = f.read()
 
-# Process the photos
-ocr_processor.process_photos()
+# Open the output text file in append mode
+with open('output.txt', 'a') as f:
+    # Process each photo for OCR without saving
+    for photo_name, photo_path in photo_paths.items():
+        # Create a PreprocessImg instance for the photo
+        preprocessor = PreprocessImg(photo_path)
+        
+        # Preprocess the image in memory
+        processed_image = preprocessor.preprocess_image()
+        
+        # Directly use the preprocessed image for OCR
+        ocr_result = pytesseract.image_to_string(processed_image)
+        
+        # Check if the OCR result is already in the file
+        if ocr_result not in existing_content:
+            # Write the OCR result to the text file
+            f.write(f'OCR Result for {photo_name}:\n')
+            f.write(ocr_result)
+            f.write('\n----------------\n')
