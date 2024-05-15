@@ -7,7 +7,7 @@ def is_valid_product_name(product_name):
         return False
     if re.search(r'^\d+$', product_name):  # If the product name is only numbers
         return False
-    if re.search(r'\b(KDV|TOPLAM|TOTAL|GENEL|TOPKDV|Sabit|@|ul|#|#l|%|MIGROS|A101|SOK|NO|INDIRIM|iND|iNDiRiMLER|#|TOPKIV|FIS|TARİH|SAAT)\b', product_name, re.IGNORECASE):
+    if re.search(r'\b(KDV|TOPLAM|TOTAL|GENEL|TOPKDV|Sabit|@|ul|#|#l|%|MIGROS|A101|SOK|NO|INDIRIM|iND|iNDiRiMLER)\b', product_name, re.IGNORECASE):
         return False
     return True
 
@@ -24,20 +24,7 @@ def extract_product_and_price(text):
     combined_matches = matches_by_weight + matches
     return combined_matches
 
-def extract_date(text):
-    # Regex to match dates in format xx/xx/xxxx or xx.xx.xxxx
-    date_pattern = re.compile(r'\b\d{2}[./]\d{2}[./]\d{4}\b')
-    dates = date_pattern.findall(text)
-    
-    if dates:
-        return dates[-1]  # Return the last date found as it's likely to be the most relevant
-    else:
-        return None
-
 def process_receipt(text):
-    # Extract date
-    date = extract_date(text)
-    
     # Extract product and price
     matches = extract_product_and_price(text)
     
@@ -60,7 +47,7 @@ def process_receipt(text):
                 product_and_price = {"Product": product_name, "Price": total_price}
                 products_and_prices.append(product_and_price)
 
-    return date, products_and_prices
+    return products_and_prices
 
 def ocr_image(image_path):
     # Read the image
@@ -85,13 +72,7 @@ def main(image_path):
     ocr_text = ocr_image(image_path)
 
     # Process the OCR text
-    date, products_and_prices = process_receipt(ocr_text)
-
-    # Print date
-    if date:
-        print(f"Date found in the receipt: {date}")
-    else:
-        print("No date found in the receipt.")
+    products_and_prices = process_receipt(ocr_text)
 
     # Print organized product information
     for product in products_and_prices:
@@ -102,5 +83,5 @@ def main(image_path):
 
 if __name__ == '__main__':
     # Replace 'image_path' with the path to your image file
-    image_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos/48.png'
+    image_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos/38.png'
     main(image_path)
