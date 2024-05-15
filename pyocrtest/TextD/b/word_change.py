@@ -5,7 +5,6 @@ class TextComparer:
         self.word_folder_path = word_folder_path
         self.ocr_file_path = ocr_file_path
         self.load_ocr_text()
-        self.corrections = []  # To store correction logs
 
     def load_ocr_text(self):
         with open(self.ocr_file_path, 'r') as file:
@@ -29,18 +28,24 @@ class TextComparer:
         return self.levenshtein_distance(s1, s2) / max(len(s1), len(s2))
 
     def correct_ocred_text(self, threshold=0.8):
+        corrected = False
         # Process each txt file in the word folder
         for filename in os.listdir(self.word_folder_path):
             if filename.endswith('.txt'):
                 with open(os.path.join(self.word_folder_path, filename), 'r') as f:
                     txt_words = f.read().split()
 
+                    # Compare each word in the OCR text with each word in the txt file
                     for i, ocr_word in enumerate(self.ocr_words):
                         for txt_word in txt_words:
                             similarity = self.normalized_levenshtein_distance(ocr_word, txt_word)
+                            # If the similarity is above the threshold and the word is different, replace the word in the OCR text
                             if similarity > threshold and ocr_word != txt_word:
-                                self.corrections.append((ocr_word, txt_word))  # Log correction
-                                self.ocr_words[i] = txt_word  # Replace the word
+                                self.ocr_words[i] = txt_word
+                                corrected = True
+                                break
+                        if corrected:
+                            break
         return ' '.join(self.ocr_words)
 
     def update_ocr_file(self):
@@ -48,13 +53,11 @@ class TextComparer:
         if corrected_text:  # only update if there were corrections
             with open(self.ocr_file_path, 'w') as file:
                 file.write(corrected_text)
-        return self.corrections  # Return the list of corrections
 
 # Example Usage
 word_directory = '/Users/pc/Documents/GitHub/OCR/pyocrtest/word'
 ocr_file_path = '/Users/pc/Documents/GitHub/OCR/output.txt'
 comparer = TextComparer(word_directory, ocr_file_path)
-corrections = comparer.update_ocr_file()
-print("Corrections made:")
-for original, corrected in corrections:
-    print(f"Original: '{original}' -> Corrected: '{corrected}'")
+comparer.update_ocr_file()
+
+##sikiyim boyle kodu da ocri da

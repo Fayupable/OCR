@@ -98,6 +98,7 @@ word_file_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/TextD/b/words.txt'
 with open('output.txt', 'r') as f:
     existing_content = f.read()
 
+# Open the output text file in append mode
 with open('output.txt', 'a') as f:
     # Process each photo for OCR without saving
     for photo_name, photo_path in photo_paths.items():
@@ -116,8 +117,3 @@ with open('output.txt', 'a') as f:
             f.write(f'OCR Result for {photo_name}:\n')
             f.write(ocr_result)
             f.write('\n----------------\n')
-
-        # Extract product info from the OCR result
-        ocr_image = OcrImage(ocr_result)
-        product_info = ocr_image.extract_product_info()
-        print(product_info)

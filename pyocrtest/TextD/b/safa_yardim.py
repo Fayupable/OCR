@@ -7,7 +7,7 @@ def is_valid_product_name(product_name):
         return False
     if re.search(r'^\d+$', product_name):  # If the product name is only numbers
         return False
-    if re.search(r'\b(KDV|TOPLAM|TOTAL|GENEL|TOPKDV|Sabit|@|ul|#|#l|%|MIGROS|A101|SOK|NO|INDIRIM|iND)\b', product_name, re.IGNORECASE):
+    if re.search(r'\b(KDV|TOPLAM|TOTAL|GENEL|TOPKDV|Sabit|@|ul|#|#l|%|MIGROS|A101|SOK|NO|INDIRIM|iND|iNDiRiMLER)\b', product_name, re.IGNORECASE):
         return False
     return True
 
@@ -83,5 +83,5 @@ def main(image_path):
 
 if __name__ == '__main__':
     # Replace 'image_path' with the path to your image file
-    image_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos/33.png'
+    image_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos/38.png'
     main(image_path)

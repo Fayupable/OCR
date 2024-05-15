@@ -29,6 +29,7 @@ def extract_product_and_price(text):
     pattern = re.compile(r'(.+?)\s*\*\s*([0-9,.]+)')
     matches = pattern.findall(text)
     
+    
     # Combine both matches
     combined_matches = matches_by_weight + matches
     return combined_matches

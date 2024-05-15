@@ -1,87 +1,64 @@
 import cv2 as cv
 import easyocr
+import numpy as np
 import re
 
-def is_valid_product_name(product_name):
-    if len(product_name) < 3:
-        return False
-    if re.search(r'^\d+$', product_name):  # If the product name is only numbers
-        return False
-    if re.search(r'\b(KDV|TOPLAM|TOTAL|GENEL|TOPKDV|Sabit|@|ul|#|#l|%|MIGROS|A101|SOK|NO)\b', product_name, re.IGNORECASE):
-        return False
-    return True
+# Read the image
+image_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos/25.jpg'
+img = cv.imread(image_path)
 
-def extract_product_and_price(text):
-    # Regex to match products sold by weight
-    pattern_by_weight = re.compile(r'(\d+,\d+)\s*KG\s*x\s*(\d+,\d+)\s*TL/KG\s*(.+?)\s*\*\s*([0-9,]+)')
-    matches_by_weight = pattern_by_weight.findall(text)
+# Convert the image to grayscale
+gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
-    # Regex to match products not sold by weight
-    pattern = re.compile(r'(.+?)\s*\*\s*([0-9,.]+)')
-    matches = pattern.findall(text)
-    
-    # Combine both matches
-    combined_matches = matches_by_weight + matches
-    return combined_matches
+# Create a white image as a canvas for text
+white_canvas = np.ones_like(gray_img) * 255  # Creating a white image of the same size as the input image
 
-def process_receipt(text):
-    # Extract product and price
-    matches = extract_product_and_price(text)
-    
-    # Create a list to store the products and prices
-    products_and_prices = []
+# Combine original image and white canvas horizontally
+combined_img = np.hstack((gray_img, white_canvas))
 
-    for match in matches:
-        if len(match) == 4:  # For products sold by weight
-            weight = match[0]
-            price_per_kg = match[1]
-            product_name = match[2].strip()
-            total_price = match[3]
-            if is_valid_product_name(product_name):
-                product_and_price = {"Product": product_name, "Weight": weight, "Price per KG": price_per_kg, "Total Price": total_price}
-                products_and_prices.append(product_and_price)
-        else:  # For products not sold by weight
-            product_name = match[0].strip()
-            total_price = match[1]
-            if is_valid_product_name(product_name):
-                product_and_price = {"Product": product_name, "Price": total_price}
-                products_and_prices.append(product_and_price)
+# Create an instance of text reader
+reader = easyocr.Reader(['en'], gpu=False)
 
-    return products_and_prices
+# Define regex pattern to check if text is a price
+#(.+)\s+%([0-9,.]+)\s+\*([0-9,.]+) other regex
+price_pattern = re.compile(r'(.+)\s+\*([0-9,.]+)')
 
-def ocr_image(image_path):
-    # Read the image
-    img = cv.imread(image_path)
 
-    # Convert the image to grayscale
-    gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+# Detect text
+try:
+    result = reader.readtext(image_path)
 
-    # Create an instance of text reader
-    reader = easyocr.Reader(['en'], gpu=False)
+    thres = 0.01
 
-    # Detect text
-    result = reader.readtext(gray_img)
+    # Draw text and box
+    previous_bottom = 0
+    for detection in result:
+        bbox, text, score = detection
 
-    # Extract text from the detection results
-    text = " ".join([detection[1] for detection in result])
+        if score > thres:
+            try:
+                cv.rectangle(combined_img, (bbox[0][0], bbox[0][1]), (bbox[2][0], bbox[2][1]), (0, 255, 0), 2)
+                
+                # Check if the current text matches the price pattern
+                if re.match(price_pattern, text) and previous_bottom != 0:
+                    text_position = (bbox[0][0] + gray_img.shape[1], previous_bottom)
+                    
+                else:
+                    text_position = (bbox[0][0] + gray_img.shape[1], previous_bottom)  # Adjust the space here
+                cv.putText(combined_img, text, text_position, cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                
+                # Update previous bottom for the next text
+                previous_bottom = text_position[1] + 20  # Adjust the space here
+                print(text)
 
-    return text
+            
+            except Exception as e:
+                print("Error while drawing bounding box:", e)
+    # Show the image
+    cv.imshow('Detected Text', combined_img)    
+    cv.waitKey(0)
+    cv.destroyAllWindows()
 
-def main(image_path):
-    # Perform OCR on the image
-    ocr_text = ocr_image(image_path)
 
-    # Process the OCR text
-    products_and_prices = process_receipt(ocr_text)
-
-    # Print organized product information
-    for product in products_and_prices:
-        if "Weight" in product:
-            print(f"Product: {product['Product']}, Weight: {product['Weight']} KG, Price per KG: {product['Price per KG']}, Total Price: {product['Total Price']}")
-        else:
-            print(f"Product: {product['Product']}, Price: {product['Price']}")
-
-if __name__ == '__main__':
-    # Replace 'image_path' with the path to your image file
-    image_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos/10.jpg'
-    main(image_path)
+except Exception as e:
+    print("An error occurred:", e)
