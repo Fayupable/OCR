@@ -34,9 +34,24 @@ def extract_date(text):
     else:
         return None
 
+def extract_store_name(text):
+    # List of known store names
+    store_names = ['MIGROS', 'A101', 'SOK', 'BIM', 'CARREFOURSA', 'TESCO', 'METRO','GROSPER','BICEN','KIPA','TARIM KREDI KOOPERATIFLERI','MACROCENTER','EKOMINI','HAKMAR','MIGROS JET','FILE MARKET']
+    store_pattern = re.compile(r'\b(' + '|'.join(store_names) + r')\b', re.IGNORECASE)
+    
+    stores = store_pattern.findall(text)
+    
+    if stores:
+        return stores[0].upper()  # Return the first matching store name found
+    else:
+        return "Unknown Store"
+
 def process_receipt(text):
     # Extract date
     date = extract_date(text)
+    
+    # Extract store name
+    store_name = extract_store_name(text)
     
     # Extract product and price
     matches = extract_product_and_price(text)
@@ -60,7 +75,7 @@ def process_receipt(text):
                 product_and_price = {"Product": product_name, "Price": total_price}
                 products_and_prices.append(product_and_price)
 
-    return date, products_and_prices
+    return date, store_name, products_and_prices
 
 def ocr_image(image_path):
     # Read the image
@@ -85,7 +100,10 @@ def main(image_path):
     ocr_text = ocr_image(image_path)
 
     # Process the OCR text
-    date, products_and_prices = process_receipt(ocr_text)
+    date, store_name, products_and_prices = process_receipt(ocr_text)
+
+    # Print store name
+    print(f"Store Name: {store_name}")
 
     # Print date
     if date:
@@ -102,5 +120,5 @@ def main(image_path):
 
 if __name__ == '__main__':
     # Replace 'image_path' with the path to your image file
-    image_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos/48.png'
+    image_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos/4.png'
     main(image_path)
