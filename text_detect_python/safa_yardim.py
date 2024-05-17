@@ -120,5 +120,5 @@ def main(image_path):
 
 if __name__ == '__main__':
     # Replace 'image_path' with the path to your image file
-    image_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos/59.png'
+    image_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos/60.png'
     main(image_path)
