@@ -77,7 +77,7 @@ def process_receipt(text):
 
     return date, store_name, products_and_prices
 
-def ocr_image(image_path):
+def ocr_image(image_path, gpu):
     # Read the image
     img = cv.imread(image_path)
 
@@ -85,7 +85,7 @@ def ocr_image(image_path):
     gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
     # Create an instance of text reader
-    reader = easyocr.Reader(['en'], gpu=False)
+    reader = easyocr.Reader(['en'], gpu=gpu)
 
     # Detect text
     result = reader.readtext(gray_img)
@@ -97,7 +97,7 @@ def ocr_image(image_path):
 
 def main(image_path):
     # Perform OCR on the image
-    ocr_text = ocr_image(image_path)
+    ocr_text = ocr_image(image_path, False)
 
     # Process the OCR text
     date, store_name, products_and_prices = process_receipt(ocr_text)
