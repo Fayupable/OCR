@@ -62,6 +62,7 @@ def process_receipt(text):
     
     # Create a list to store the products and prices
     products_and_prices = []
+    processed_products = set()  # To keep track of products to avoid duplicates
 
     for match in matches:
         if len(match) == 5:  # For products sold by weight
@@ -69,23 +70,29 @@ def process_receipt(text):
             price_per_kg = match[1]
             product_name = match[2].strip()
             total_price = match[3]
-            if is_valid_product_name(product_name):
+            product_key = (product_name, weight, price_per_kg, total_price)
+            if is_valid_product_name(product_name) and product_key not in processed_products:
                 product_and_price = {"Product": product_name, "Weight": weight, "Price per KG": price_per_kg, "Total Price": total_price}
                 products_and_prices.append(product_and_price)
+                processed_products.add(product_key)  # Add to set
         elif len(match) == 4:  # For products sold by quantity
             quantity = match[0]
             price_per_unit = match[1]
             product_name = match[2].strip()
             total_price = match[3]
-            if is_valid_product_name(product_name):
+            product_key = (product_name, quantity, price_per_unit, total_price)
+            if is_valid_product_name(product_name) and product_key not in processed_products:
                 product_and_price = {"Product": product_name, "Quantity": quantity, "Price per Unit": price_per_unit, "Total Price": total_price}
                 products_and_prices.append(product_and_price)
+                processed_products.add(product_key)  # Add to set
         else:  # For products not sold by weight or quantity
             product_name = match[0].strip()
             total_price = match[1]
-            if is_valid_product_name(product_name):
+            product_key = (product_name, total_price)
+            if is_valid_product_name(product_name) and product_key not in processed_products:
                 product_and_price = {"Product": product_name, "Price": total_price}
                 products_and_prices.append(product_and_price)
+                processed_products.add(product_key)  # Add to set
 
     return date, store_name, products_and_prices
 
@@ -123,8 +130,12 @@ def main(image_path):
     else:
         print("No date found in the receipt.")
 
+    # Convert list of dictionaries to set of tuples to remove duplicates
+    products_and_prices = set(tuple(product.items()) for product in products_and_prices)
+
     # Print organized product information
     for product in products_and_prices:
+        product = dict(product)  # Convert tuple back to dictionary
         if "Weight" in product:
             print(f"Product: {product['Product']}, Weight: {product['Weight']} KG, Price per KG: {product['Price per KG']}, Total Price: {product['Total Price']}")
         elif "Quantity" in product:
@@ -134,5 +145,5 @@ def main(image_path):
 
 if __name__ == '__main__':
     # Replace 'image_path' with the path to your image file
-    image_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos/63.png'
+    image_path = '/Users/pc/Documents/GitHub/OCR/pyocrtest/processed_photos/62.png'
     main(image_path)
