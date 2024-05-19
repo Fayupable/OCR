@@ -10,6 +10,8 @@ from PyQt5.QtWidgets import (QMainWindow, QHeaderView, QFileDialog, QApplication
 
 from mainwindow import Ui_MainWindow
 from addrowdialog import AddRowDialog
+from records import Records
+from settings import Settings
 from safa_yardim import ocr_image, process_receipt
 import sys
 
@@ -33,26 +35,68 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.chooseButton.clicked.connect(self.loadImage)
         self.addButton.clicked.connect(self.openRowDialog)
         self.deleteButton.clicked.connect(self.deleteRowFromTable)
+        self.actionKayitlar.triggered.connect(self.redirectToRecords)
+        self.actionAyarlar.triggered.connect(self.openSettings)
         self.productTable.setItemDelegate(ValidatorDelegate())
         header = self.productTable.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
 
+        self.record_window = None
         self.imageMenu = QMenu(self)
         try:
-            with open("assets/recent_files.json") as json_file:
-                self.imagePaths = json.load(json_file)
+            with open("assets/settings.json") as json_file:
+                json_obj = json.load(json_file)
+                self.imagePaths = json_obj["recent_files"]
+                self.use_gpu = json_obj["use_gpu"]
         except FileNotFoundError:
             self.imagePaths = list()
+            self.use_gpu = False
         self.updateMenu()
         self.recentImgToolButton.setMenu(self.imageMenu)
 
     def closeEvent(self, event):
         if not os.path.exists("assets"):
             os.makedirs("assets")
-        with open("assets/recent_files.json", "w") as json_file:
-            json.dump(self.imagePaths, json_file)
+        with open("assets/settings.json", "w") as json_file:
+            settings = {"recent_files": self.imagePaths, "use_gpu": self.use_gpu}
+            json.dump(settings, json_file)
         event.accept()
+
+    def redirectToRecords(self):
+        if self.record_window is None:
+            data = [
+                ["Market A", "19/05/2023", "Product 1", 10.99],
+                ["Market B", "20/05/2023", "Product 2", 5.49],
+                ["Market C", "21/05/2023", "Product 3", 2.99],
+            ]
+            self.record_window = Records(data)
+            self.record_window.shutdown_trigger.trigger.connect(self.onRecordsDestroyed)
+        if not self.record_window.isVisible():
+            self.record_window.show()
+            self.hide()
+
+    def openSettings(self):
+        setting_dialog = Settings()
+        setting_dialog.gpu_trigger.trigger.connect(self.setGpuUsage)
+        setting_dialog.exec_()
+        setting_dialog.gpu_trigger.trigger.disconnect()
+
+    def setGpuUsage(self, gpu):
+        self.use_gpu = gpu
+        json_file = open("assets/settings.json")
+        json_obj = json.load(json_file)
+        json_obj["use_gpu"] = self.use_gpu
+        json_file.close()
+        with open("assets/settings.json", "w") as settings:
+            json.dump(json_obj, settings)
+
+    def onRecordsDestroyed(self, shutdown):
+        if shutdown:
+            self.close()
+        else:
+            self.record_window = None
+            self.show()
 
     def loadImage(self):
         file_dialog = QFileDialog()
@@ -72,7 +116,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if not pixmap.isNull():
                 self.photoLabel.setPixmap(pixmap.scaled(self.photoLabel.size(),
                                                         Qt.KeepAspectRatio, Qt.SmoothTransformation))
-                if torch.cuda.is_available():
+                if self.use_gpu:
                     date_str, store, products = process_receipt(ocr_image(file_path, True))
                 else:
                     date_str, store, products = process_receipt(ocr_image(file_path, False))
@@ -99,6 +143,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 QMessageBox.warning(self, "Hatalı Dosya",
                                     "Seçtiğiniz dosya yüklenemedi. Lütfen başka bir dosya seçin.")
+
     def openRowDialog(self):
         dialog = AddRowDialog()
         dialog.trigger.row_trigger.connect(self.addRowToTable)
@@ -124,6 +169,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 action = QAction(path, self)
                 action.triggered.connect(lambda checked, arg=path: self.loadImageInternal(arg))
                 self.imageMenu.addAction(action)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

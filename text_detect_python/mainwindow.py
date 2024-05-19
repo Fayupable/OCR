@@ -78,7 +78,10 @@ class Ui_MainWindow(object):
         MainWindow.setMenuBar(self.menubar)
         self.actionKayitlar = QtWidgets.QAction(MainWindow)
         self.actionKayitlar.setObjectName("actionKayitlar")
+        self.actionAyarlar = QtWidgets.QAction(MainWindow)
+        self.actionAyarlar.setObjectName("actionAyarlar")
         self.dbMenu.addAction(self.actionKayitlar)
+        self.dbMenu.addAction(self.actionAyarlar)
         self.menubar.addAction(self.dbMenu.menuAction())
 
         self.retranslateUi(MainWindow)
@@ -102,3 +105,4 @@ class Ui_MainWindow(object):
         self.dateEdit.setDisplayFormat(_translate("MainWindow", "dd/MM/yyyy"))
         self.dbMenu.setTitle(_translate("MainWindow", "Menü"))
         self.actionKayitlar.setText(_translate("MainWindow", "Kayıtlar"))
+        self.actionAyarlar.setText(_translate("MainWindow", "Ayarlar"))
