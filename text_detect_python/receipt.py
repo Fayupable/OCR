@@ -60,7 +60,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             os.makedirs("assets")
         with open("assets/settings.json", "w") as json_file:
             settings = {"recent_files": self.imagePaths, "use_gpu": self.use_gpu}
-            json.dump(settings, json_file)
+            json.dump(settings, json_file, indent=4)
         event.accept()
 
     def redirectToRecords(self):
@@ -89,7 +89,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         json_obj["use_gpu"] = self.use_gpu
         json_file.close()
         with open("assets/settings.json", "w") as settings:
-            json.dump(json_obj, settings)
+            json.dump(json_obj, settings, indent=4)
 
     def onRecordsDestroyed(self, shutdown):
         if shutdown:
