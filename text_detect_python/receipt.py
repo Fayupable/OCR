@@ -3,7 +3,7 @@ import json
 import os.path
 
 import torch.cuda
-from PyQt5.QtCore import QRegularExpression, Qt, QDate
+from PyQt5.QtCore import QRegularExpression, Qt, QDate, QThread
 from PyQt5.QtGui import QPixmap, QRegularExpressionValidator
 from PyQt5.QtWidgets import (QMainWindow, QHeaderView, QFileDialog, QApplication, QTableWidgetItem,
                              QLineEdit, QItemDelegate, QMessageBox, QMenu, QAction)
@@ -14,6 +14,8 @@ from records import Records
 from settings import Settings
 from safa_yardim import ocr_image, process_receipt
 import sys
+
+from worker import Worker
 
 
 class ValidatorDelegate(QItemDelegate):
@@ -55,6 +57,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.updateMenu()
         self.recentImgToolButton.setMenu(self.imageMenu)
 
+        self.worker = None
+        self.thread = None
+
     def closeEvent(self, event):
         if not os.path.exists("assets"):
             os.makedirs("assets")
@@ -62,6 +67,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             settings = {"recent_files": self.imagePaths, "use_gpu": self.use_gpu}
             json.dump(settings, json_file, indent=4)
         event.accept()
+
+    def emptyThread(self):
+        self.worker = None
+        self.thread = None
 
     def redirectToRecords(self):
         if self.record_window is None:
@@ -116,33 +125,65 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if not pixmap.isNull():
                 self.photoLabel.setPixmap(pixmap.scaled(self.photoLabel.size(),
                                                         Qt.KeepAspectRatio, Qt.SmoothTransformation))
-                if self.use_gpu:
-                    date_str, store, products = process_receipt(ocr_image(file_path, True))
-                else:
-                    date_str, store, products = process_receipt(ocr_image(file_path, False))
+                #if self.use_gpu:
+                #    date_str, store, products = process_receipt(ocr_image(file_path, True))
+                #else:
+                #    date_str, store, products = process_receipt(ocr_image(file_path, False))
 
-                if date_str:
-                    date = QDate.fromString(date_str, "dd/MM/yyyy")
-                    self.dateEdit.setDate(date)
-                if store:
-                    self.marketLE.setText(store)
-
-                row_position = self.productTable.rowCount()
-                if row_position > 0:
-                    self.productTable.setRowCount(0)
-                for product in products:
-                    product_name = product["Product"]
-                    if "Weight" in product:
-                        price = product["Price per KG"]
-                    else:
-                        price = product["Price"]
-                    self.productTable.insertRow(row_position)
-                    self.productTable.setItem(row_position, 0, QTableWidgetItem(product_name))
-                    self.productTable.setItem(row_position, 1, QTableWidgetItem(price))
-                    row_position += 1
+                #if date_str:
+                #    date = QDate.fromString(date_str, "dd/MM/yyyy")
+                #    self.dateEdit.setDate(date)
+                #if store:
+                #    self.marketLE.setText(store)
+                #
+                #row_position = self.productTable.rowCount()
+                #if row_position > 0:
+                #    self.productTable.setRowCount(0)
+                #for product in products:
+                #    product_name = product["Product"]
+                #    if "Weight" in product:
+                #        price = product["Price per KG"]
+                #    else:
+                #        price = product["Price"]
+                #    self.productTable.insertRow(row_position)
+                #    self.productTable.setItem(row_position, 0, QTableWidgetItem(product_name))
+                #    self.productTable.setItem(row_position, 1, QTableWidgetItem(price))
+                #    row_position += 1
+                self.worker = Worker(file_path, self.use_gpu)
+                self.thread = QThread()
+                self.worker.moveToThread(self.thread)
+                self.thread.started.connect(self.worker.run)
+                self.worker.result_signal.signal.connect(self.fillProductsTable)
+                self.worker.finish_signal.signal.connect(self.worker.deleteLater)
+                self.worker.finish_signal.signal.connect(self.thread.quit)
+                self.worker.finish_signal.signal.connect(self.thread.wait)
+                self.thread.start()
             else:
                 QMessageBox.warning(self, "Hatalı Dosya",
                                     "Seçtiğiniz dosya yüklenemedi. Lütfen başka bir dosya seçin.")
+
+    def fillProductsTable(self, date_str, store, products):
+        if date_str:
+            date = QDate.fromString(date_str, "dd/MM/yyyy")
+            self.dateEdit.setDate(date)
+        if store:
+            self.marketLE.setText(store)
+
+        row_position = self.productTable.rowCount()
+        if row_position > 0:
+            self.productTable.setRowCount(0)
+        for product in products:
+            product_name = product["Product"]
+            if "Weight" in product:
+                price = product["Price per KG"]
+            elif "Quantity" in product:
+                price = product["Price per Unit"]
+            else:
+                price = product["Price"]
+            self.productTable.insertRow(row_position)
+            self.productTable.setItem(row_position, 0, QTableWidgetItem(product_name))
+            self.productTable.setItem(row_position, 1, QTableWidgetItem(price))
+            row_position += 1
 
     def openRowDialog(self):
         dialog = AddRowDialog()
