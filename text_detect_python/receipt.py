@@ -75,9 +75,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def redirectToRecords(self):
         if self.record_window is None:
             data = [
-                ["Market A", "19/05/2023", "Product 1", 10.99],
-                ["Market B", "20/05/2023", "Product 2", 5.49],
-                ["Market C", "21/05/2023", "Product 3", 2.99],
+                ["Market A", "19/05/2023", "Kinder Pingui", 10.99],
+                ["Market B", "20/05/2023", "Kinder Süt Dilimi", 5.49],
+                ["Market C", "21/05/2023", "Torku Banada", 2.99],
             ]
             self.record_window = Records(data)
             self.record_window.shutdown_trigger.trigger.connect(self.onRecordsDestroyed)
