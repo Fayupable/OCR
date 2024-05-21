@@ -45,6 +45,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
 
         self.record_window = None
+        self.startup = True
         self.imageMenu = QMenu(self)
         try:
             with open("assets/settings.json") as json_file:
@@ -68,9 +69,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             json.dump(settings, json_file, indent=4)
         event.accept()
 
-    def emptyThread(self):
-        self.worker = None
-        self.thread = None
 
     def redirectToRecords(self):
         if self.record_window is None:
@@ -114,41 +112,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def loadImageInternal(self, file_path):
         if file_path:
-            if file_path in self.imagePaths:
+            if self.startup is False and file_path == self.imagePaths[0]:
+                QMessageBox.warning(self, "Uyarı!", "Bu dosya halihazırda ekranda okunmuş halde görülebilir.")
+                return
+            elif file_path in self.imagePaths:
                 self.imagePaths.remove(file_path)
             elif len(self.imagePaths) >= 8:
                 self.imagePaths.pop()
             self.imagePaths.insert(0, file_path)
             self.updateMenu()
+            if self.startup is True:
+                self.startup = False
 
             pixmap = QPixmap(file_path)
             if not pixmap.isNull():
                 self.photoLabel.setPixmap(pixmap.scaled(self.photoLabel.size(),
                                                         Qt.KeepAspectRatio, Qt.SmoothTransformation))
-                #if self.use_gpu:
-                #    date_str, store, products = process_receipt(ocr_image(file_path, True))
-                #else:
-                #    date_str, store, products = process_receipt(ocr_image(file_path, False))
 
-                #if date_str:
-                #    date = QDate.fromString(date_str, "dd/MM/yyyy")
-                #    self.dateEdit.setDate(date)
-                #if store:
-                #    self.marketLE.setText(store)
-                #
-                #row_position = self.productTable.rowCount()
-                #if row_position > 0:
-                #    self.productTable.setRowCount(0)
-                #for product in products:
-                #    product_name = product["Product"]
-                #    if "Weight" in product:
-                #        price = product["Price per KG"]
-                #    else:
-                #        price = product["Price"]
-                #    self.productTable.insertRow(row_position)
-                #    self.productTable.setItem(row_position, 0, QTableWidgetItem(product_name))
-                #    self.productTable.setItem(row_position, 1, QTableWidgetItem(price))
-                #    row_position += 1
                 self.worker = Worker(file_path, self.use_gpu)
                 self.thread = QThread()
                 self.worker.moveToThread(self.thread)
