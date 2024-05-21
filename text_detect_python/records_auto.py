@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'records.ui'
+# Form implementation generated from reading ui file '.\records.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.10
 #
@@ -14,20 +14,26 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 600)
+        MainWindow.resize(800, 599)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName("gridLayout")
-        self.searchLE = QtWidgets.QLineEdit(self.centralwidget)
-        self.searchLE.setObjectName("searchLE")
-        self.gridLayout.addWidget(self.searchLE, 0, 1, 1, 1)
-        self.productRecordsTable = QtWidgets.QTableView(self.centralwidget)
-        self.productRecordsTable.setObjectName("productRecordsTable")
-        self.gridLayout.addWidget(self.productRecordsTable, 1, 1, 1, 1)
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setObjectName("label")
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
+        self.productRecordsTable = QtWidgets.QTableView(self.centralwidget)
+        self.productRecordsTable.setObjectName("productRecordsTable")
+        self.gridLayout.addWidget(self.productRecordsTable, 1, 2, 4, 1)
+        self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        self.label_2.setObjectName("label_2")
+        self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
+        self.searchLE = QtWidgets.QLineEdit(self.centralwidget)
+        self.searchLE.setObjectName("searchLE")
+        self.gridLayout.addWidget(self.searchLE, 0, 2, 1, 1)
+        self.marketComboBox = QtWidgets.QComboBox(self.centralwidget)
+        self.marketComboBox.setObjectName("marketComboBox")
+        self.gridLayout.addWidget(self.marketComboBox, 1, 1, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 31))
@@ -50,5 +56,6 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.label.setText(_translate("MainWindow", "Arama:"))
+        self.label_2.setText(_translate("MainWindow", "Market"))
         self.mainMenu.setTitle(_translate("MainWindow", "Menü"))
         self.actionUpload.setText(_translate("MainWindow", "Kayıt Yükleme"))

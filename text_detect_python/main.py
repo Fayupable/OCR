@@ -8,7 +8,7 @@ from PyQt5.QtGui import QPixmap, QRegularExpressionValidator
 from PyQt5.QtWidgets import (QMainWindow, QHeaderView, QFileDialog, QApplication, QTableWidgetItem,
                              QLineEdit, QItemDelegate, QMessageBox, QMenu, QAction)
 
-from mainwindow import Ui_MainWindow
+from mainwindow_auto import Ui_MainWindow
 from addrowdialog import AddRowDialog
 from records import Records
 from settings import Settings
@@ -73,9 +73,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def redirectToRecords(self):
         if self.record_window is None:
             data = [
-                ["Market A", "19/05/2023", "Kinder Pingui", 10.99],
-                ["Market B", "20/05/2023", "Kinder Süt Dilimi", 5.49],
-                ["Market C", "21/05/2023", "Torku Banada", 2.99],
+                ["Migros", "19/05/2023", "Kinder Pingui", 10.99],
+                ["Migros", "20/05/2023", "Kinder Süt Dilimi", 5.49],
+                ["Carrefour", "21/05/2023", "Torku Banada", 2.99],
+                ["Şok", "22/10/2022", "Sütaş 1LT Tam Yağlı Süt", 25,49]
             ]
             self.record_window = Records(data)
             self.record_window.shutdown_trigger.trigger.connect(self.onRecordsDestroyed)

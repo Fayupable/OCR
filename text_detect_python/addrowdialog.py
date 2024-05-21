@@ -2,7 +2,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, QRegExp
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import QDialog, QMessageBox
 
-from addrow import Ui_Dialog
+from addrowdialog_auto import Ui_Dialog
 
 
 class AddRowTrigger(QObject):

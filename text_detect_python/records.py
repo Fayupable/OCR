@@ -46,25 +46,48 @@ class RecordViewModel(QAbstractTableModel):
 class FuzzyFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, parent=None):
         super(FuzzyFilterProxyModel, self).__init__(parent)
-        self.filter_text = ""
+        self.product_filter_text = ""
+        self.store_filter_text = ""
 
-    def setFilterText(self, text):
-        self.filter_text = text
+    def setProductFilter(self, text):
+        self.product_filter_text = text
+        self.invalidateFilter()
+
+    def setStoreFilter(self, text):
+        self.store_filter_text = text
         self.invalidateFilter()
 
     def filterAcceptsRow(self, source_row, source_parent):
-        if not self.filter_text:
-            return True
-
         model = self.sourceModel()
-        # Check only the third column (index 2)
-        index = model.index(source_row, 2, source_parent)
-        data = model.data(index)
-        if data and fuzz.partial_ratio(self.filter_text.lower(),
-                                       str(data).lower()) > 85:  # Adjust the ratio threshold as needed
-            return True
-        return False
 
+        if self.store_filter_text and self.store_filter_text != "Hepsi":
+            store_index = model.index(source_row, 0, source_parent)
+            store_data = model.data(store_index)
+            if self.store_filter_text.lower() != str(store_data).lower():
+                return False
+
+        if self.product_filter_text:
+            product_index = model.index(source_row, 2, source_parent)
+            product_data = model.data(product_index)
+            if fuzz.partial_ratio(self.product_filter_text, str(product_data).lower()) <= 85:
+                return False
+
+        return True
+
+    def getColumn(self, column_index):
+        model = self.sourceModel()
+        if model is None:
+            return
+
+        row_count = model.rowCount()
+
+        items = list()
+        for row in range(row_count):
+            index = model.index(row, column_index)
+            item = model.data(index)
+            if item is not None and item not in items:
+                items.append(item)
+        return items
 
 class Records(QMainWindow, Ui_MainWindow):
     shutdown_trigger = ShutDownTrigger()
@@ -77,9 +100,11 @@ class Records(QMainWindow, Ui_MainWindow):
         self.proxyModel.setSourceModel(productModel)
         self.productRecordsTable.setModel(self.proxyModel)
         self.productRecordsTable.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
-
+        self.marketComboBox.addItem("Hepsi")
+        self.marketComboBox.addItems(self.proxyModel.getColumn(0))
+        self.marketComboBox.currentTextChanged.connect(self.proxyModel.setStoreFilter)
         self.actionUpload.triggered.connect(self.onMenuAction)
-        self.searchLE.textChanged.connect(self.proxyModel.setFilterText)
+        self.searchLE.textChanged.connect(self.proxyModel.setProductFilter)
 
     def closeEvent(self, event):
         self.shutdown_trigger.trigger.emit(True)
