@@ -69,14 +69,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             json.dump(settings, json_file, indent=4)
         event.accept()
 
-
     def redirectToRecords(self):
         if self.record_window is None:
             data = [
                 ["Migros", "19/05/2023", "Kinder Pingui", 10.99],
                 ["Migros", "20/05/2023", "Kinder Süt Dilimi", 5.49],
                 ["Carrefour", "21/05/2023", "Torku Banada", 2.99],
-                ["Şok", "22/10/2022", "Sütaş 1LT Tam Yağlı Süt", 25,49]
+                ["Şok", "22/10/2022", "Sütaş 1LT Tam Yağlı Süt", 25, 49]
             ]
             self.record_window = Records(data)
             self.record_window.shutdown_trigger.trigger.connect(self.onRecordsDestroyed)
@@ -111,9 +110,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         file_path, _ = file_dialog.getOpenFileName(self, "Open Image", "", "Image Files (*.png *.jpg *.bmp *.gif)")
         self.loadImageInternal(file_path)
 
-    def loadImageInternal(self, file_path):
+    def loadImageInternal(self, file_path, repeat):
         if file_path:
-            if self.startup is False and file_path == self.imagePaths[0]:
+            if self.startup is False and repeat is False and file_path == self.imagePaths[0]:
                 QMessageBox.warning(self, "Uyarı!", "Bu dosya halihazırda ekranda okunmuş halde görülebilir.")
                 return
             elif file_path in self.imagePaths:
@@ -134,6 +133,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.thread = QThread()
                 self.worker.moveToThread(self.thread)
                 self.thread.started.connect(self.worker.run)
+                self.thread.finished.connect(self.handleEmptyTable)
                 self.worker.result_signal.signal.connect(self.fillProductsTable)
                 self.worker.finish_signal.signal.connect(self.worker.deleteLater)
                 self.worker.finish_signal.signal.connect(self.thread.quit)
@@ -144,11 +144,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                     "Seçtiğiniz dosya yüklenemedi. Lütfen başka bir dosya seçin.")
 
     def fillProductsTable(self, date_str, store, products):
+        error_str = ""
         if date_str:
             date = QDate.fromString(date_str, "dd/MM/yyyy")
             self.dateEdit.setDate(date)
+        else:
+            error_str += "Mevcut backend ile fiş üzerindeki tarih okunamadı.\n"
+
         if store:
             self.marketLE.setText(store)
+        else:
+            error_str += "Mevcut backend ile fişin alındığı market okunamadı."
+
+        if error_str:
+            QMessageBox.warning(self, "Eksik Okuma", error_str)
 
         row_position = self.productTable.rowCount()
         if row_position > 0:
@@ -165,6 +174,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.productTable.setItem(row_position, 0, QTableWidgetItem(product_name))
             self.productTable.setItem(row_position, 1, QTableWidgetItem(price))
             row_position += 1
+
+    def handleEmptyTable(self):
+        if self.productTable.rowCount() == 0:
+            backend_str = "GPU" if self.use_gpu else "CPU"
+            fallback_str = "CPU" if self.use_gpu else "GPU"
+            result = QMessageBox.question(self, "Boş Sepet", f"{backend_str} backend'i ile herhangi bir ürün "
+                                                             f"okunamadı.\n"
+                                                             f"{fallback_str} backend'i ile tekrar denemek ister "
+                                                             f"misiniz?")
+            if result == QMessageBox.Yes:
+                backend_is_gpu = False if self.use_gpu else True
+                self.setGpuUsage(backend_is_gpu)
+                self.loadImageInternal(self.imagePaths[0], True)
 
     def openRowDialog(self):
         dialog = AddRowDialog()
@@ -189,7 +211,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not self.imagePaths is None:
             for path in self.imagePaths:
                 action = QAction(path, self)
-                action.triggered.connect(lambda checked, arg=path: self.loadImageInternal(arg))
+                action.triggered.connect(lambda checked, arg=path: self.loadImageInternal(arg, False))
                 self.imageMenu.addAction(action)
 
 
