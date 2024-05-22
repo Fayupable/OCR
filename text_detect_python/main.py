@@ -108,7 +108,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def loadImage(self):
         file_dialog = QFileDialog()
         file_path, _ = file_dialog.getOpenFileName(self, "Open Image", "", "Image Files (*.png *.jpg *.bmp *.gif)")
-        self.loadImageInternal(file_path)
+        self.loadImageInternal(file_path, False)
 
     def loadImageInternal(self, file_path, repeat):
         if file_path:
