@@ -88,11 +88,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def redirectToRecords(self):
         if self.record_window is None:
+            connectToDB()
+            products = dbGetAll()
+            closeConnection()
+
             data = [
-                ["Migros", "19/05/2023", "Kinder Pingui", 10.99],
-                ["Migros", "20/05/2023", "Kinder Süt Dilimi", 5.49],
-                ["Carrefour", "21/05/2023", "Torku Banada", 2.99],
-                ["Şok", "22/10/2022", "Sütaş 1LT Tam Yağlı Süt", 25, 49]
+                [product["shop"], product["date"], product["product_name"], product["price"]]
+                for product in products
             ]
             self.record_window = Records(data)
             self.record_window.shutdown_trigger.trigger.connect(self.onRecordsDestroyed)
