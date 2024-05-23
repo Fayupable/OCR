@@ -75,6 +75,7 @@ class FuzzyFilterProxyModel(QSortFilterProxyModel):
         super(FuzzyFilterProxyModel, self).__init__(parent)
         self.product_filter_text = ""
         self.store_filter_text = ""
+        self.chosen_product_text = ""
 
     def setProductFilter(self, text):
         self.product_filter_text = text
@@ -82,6 +83,10 @@ class FuzzyFilterProxyModel(QSortFilterProxyModel):
 
     def setStoreFilter(self, text):
         self.store_filter_text = text
+        self.invalidateFilter()
+
+    def setChosenProduct(self, text):
+        self.chosen_product_text = text
         self.invalidateFilter()
 
     def filterAcceptsRow(self, source_row, source_parent):
@@ -96,7 +101,17 @@ class FuzzyFilterProxyModel(QSortFilterProxyModel):
         if self.product_filter_text:
             product_index = model.index(source_row, 2, source_parent)
             product_data = model.data(product_index)
-            if fuzz.partial_ratio(self.product_filter_text, str(product_data).lower()) <= 85:
+            if self.chosen_product_text:
+                if fuzz.partial_ratio(self.product_filter_text, str(product_data).lower()) <= 85 or fuzz.partial_ratio(self.chosen_product_text, str(product_data).lower()) <= 85:
+                    return False
+            else:
+                if fuzz.partial_ratio(self.product_filter_text, str(product_data).lower()) <= 85:
+                    return False
+
+        if not self.product_filter_text and self.chosen_product_text:
+            product_index = model.index(source_row, 2, source_parent)
+            product_data = model.data(product_index)
+            if fuzz.partial_ratio(self.chosen_product_text, str(product_data).lower()) <= 85:
                 return False
 
         return True
@@ -152,7 +167,7 @@ class Records(QMainWindow, Ui_MainWindow):
                 self.chosenProductModel.addRow(row_data)
 
             if row_count == 0:
-                self.proxyModel.setProductFilter(row_data[2])
+                self.proxyModel.setChosenProduct(row_data[2])
 
     def deleteSelectedRow(self):
         selected_indexes = self.chosenProductsTable.selectionModel().selectedIndexes()
@@ -162,9 +177,9 @@ class Records(QMainWindow, Ui_MainWindow):
         row_count = self.chosenProductModel.rowCount()
         if row_count == 1:
             row_data = self.chosenProductModel.getRowData(0)
-            self.proxyModel.setProductFilter(row_data[2])
+            self.proxyModel.setChosenProduct(row_data[2])
         else:
-            self.proxyModel.setProductFilter("")
+            self.proxyModel.setChosenProduct("")
 
     def clearChosenProducts(self):
         self.chosenProductModel.removeRows(0, 2)
