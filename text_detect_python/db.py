@@ -4,7 +4,6 @@ import xml.etree.ElementTree as ET
 # Main flow should probably only include this as a text, other functions can be imported.
 
 productsDB = SqliteDatabase("assets/productsDB.db")
-
 # Table and column definition class
 
 class Product(Model):
@@ -55,14 +54,15 @@ def checkUniqueness(product_entry):
 
 # Will insert all the product dictionary entries in the list but will roll back if even a single one fails.
 def dbInsert(products_list):
+    error_str = ""
     try: 
         with productsDB.atomic():
             for product_entry in products_list:
                     if(checkUniqueness(product_entry)):
                        Product.create(**product_entry)
                     else:
-                        print("Insertion failed.")
-                        break
+                        error_str += f"{product_entry["product_name"]}\n"
+        return error_str
     except IntegrityError as fail:
         print(f"Insertion failed: {fail}")
 

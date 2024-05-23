@@ -131,6 +131,7 @@ class Records(QMainWindow, Ui_MainWindow):
         self.productRecordsTable.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
 
         self.chosenProductsTable.setModel(self.chosenProductModel)
+        self.chosenProductsTable.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
 
         self.marketComboBox.addItem("Hepsi")
         self.marketComboBox.addItems(self.proxyModel.getColumn(0))
@@ -139,20 +140,31 @@ class Records(QMainWindow, Ui_MainWindow):
         self.searchLE.textChanged.connect(self.proxyModel.setProductFilter)
 
         self.chooseButton.clicked.connect(self.addSelectedRow)
+        self.deleteButton.clicked.connect(self.deleteSelectedRow)
 
     def addSelectedRow(self):
         selected_indexes = self.productRecordsTable.selectionModel().selectedIndexes()
         if selected_indexes:
             selected_row = selected_indexes[0].row()
             row_data = self.proxyModel.sourceModel().getRowData(selected_row)
-            if self.chosenProductModel.rowCount() < 2:
+            row_count = self.chosenProductModel.rowCount()
+            if row_count < 2:
                 self.chosenProductModel.addRow(row_data)
+
+            if row_count == 0:
+                self.proxyModel.setProductFilter(row_data[2])
 
     def deleteSelectedRow(self):
         selected_indexes = self.chosenProductsTable.selectionModel().selectedIndexes()
         if selected_indexes:
             selected_row = selected_indexes[0].row()
             self.chosenProductModel.removeRows(selected_row, 1)
+        row_count = self.chosenProductModel.rowCount()
+        if row_count == 1:
+            row_data = self.chosenProductModel.getRowData(0)
+            self.proxyModel.setProductFilter(row_data[2])
+        else:
+            self.proxyModel.setProductFilter("")
 
     def clearChosenProducts(self):
         self.chosenProductModel.removeRows(0, 2)
