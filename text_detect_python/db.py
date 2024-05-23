@@ -96,4 +96,6 @@ def dbCompare(product_entry1, product_entry2):
         print("1st product is more expensive." if product1.price > product2.price else "1st product is cheaper.")
 
 
-
+def dbGetAll():
+    products_list = [product for product in Product.select().dicts()]
+    return products_list
