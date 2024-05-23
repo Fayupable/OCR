@@ -25,6 +25,7 @@ def existingTable(model):
 def connectToDB():
     try:
         productsDB.connect()
+        print("Successfully connected to database.")
     except OperationalError as failed:
         print("Failed to connect.")
 
@@ -32,8 +33,9 @@ def connectToDB():
 def closeConnection():
     try:
         productsDB.close()
+        print("Connection succesfully closed.")
     except OperationalError as failed:
-        print("Failed to connect.")
+        print("Failed to close connection.")
 
 
 # Will search for a perfect match in the database, returns a "None" valued "product" variable if fails to find so. 
@@ -60,6 +62,7 @@ def dbInsert(products_list):
                        Product.create(**product_entry)
                     else:
                         print("Insertion failed.")
+                        break
     except IntegrityError as fail:
         print(f"Insertion failed: {fail}")
 
@@ -99,3 +102,21 @@ def dbCompare(product_entry1, product_entry2):
 def dbGetAll():
     products_list = [product for product in Product.select().dicts()]
     return products_list
+
+def cheapestPrice(product_name):
+    queryRes = Product.select(Product.shop, Product.price).where(Product.product_name == product_name)
+    productTuple = [(values.shop, values.price) for values in queryRes]
+    if(productTuple == []):
+        print("This product doesn't exist.")
+    else:
+        cheapestPrice = productTuple[0][1]
+        shopName = productTuple[0][0]
+        for shop, price in productTuple:
+            if price < cheapestPrice:
+                cheapestPrice = price
+                shopName = shop
+        print(f"Cheapest price for this product is in {shopName} market and costs {cheapestPrice}")
+
+
+
+           
