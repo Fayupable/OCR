@@ -1,5 +1,5 @@
 from peewee import *
-
+import xml.etree.ElementTree as ET
 # Instantiates a database file with the given name. Variable will be passed into most of the functions defined below.
 # Main flow should probably only include this as a text, other functions can be imported.
 
@@ -119,4 +119,24 @@ def cheapestPrice(product_name):
 
 
 
-           
+def exportXML(products_list):
+    xmlRoot = ET.Element('Products')
+
+    for product in products_list:
+        product_element = ET.SubElement(xmlRoot, 'Product')
+        
+        shop_element = ET.SubElement(product_element, 'Shop')
+        shop_element.text = product["shop"]
+
+        date_element = ET.SubElement(product_element, 'Date')
+        date_element.text = str(product["date"])
+
+        name_element = ET.SubElement(product_element, 'ProductName')
+        name_element.text = product["product_name"]
+
+        price_element = ET.SubElement(product_element, 'Price')
+        price_element.text = str(product["price"])
+
+    outPath = "assets/products.xml" 
+    xmlTree = ET.ElementTree(xmlRoot)
+    xmlTree.write(outPath, encoding = "utf-8", xml_declaration = True)
