@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QObject, pyqtSignal, QSortFilterProxyModel
+from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QObject, pyqtSignal, QSortFilterProxyModel, QModelIndex
 from PyQt5.QtWidgets import QMainWindow, QHeaderView
 from thefuzz import fuzz
 
 from records_auto import Ui_MainWindow
 
+chosen_data = list()
 
 class ShutDownTrigger(QObject):
     trigger = pyqtSignal(bool)
@@ -28,6 +29,32 @@ class RecordViewModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             return self._data[index.row()][index.column()]
         return QVariant()
+
+    def insertRows(self, position, rows, parent=QModelIndex(), data=[]):
+        self.beginInsertRows(parent, position, position + rows - 1)
+        for i in range(rows):
+            if data:
+                self._data.insert(position + i, data[i])
+            else:
+                self._data.insert(position + i, ["", "", "", ""])  # Insert empty row if no data provided
+        self.endInsertRows()
+        return True
+
+    def addRow(self, row_data=None):
+        position = self.rowCount()
+        self.insertRows(position, 1, data=[row_data if row_data else ["", "", "", ""]])
+
+    def removeRows(self, position, rows, parent=QModelIndex()):
+        self.beginRemoveRows(parent, position, position + rows - 1)
+        for i in range(rows):
+            del self._data[position]
+        self.endRemoveRows()
+        return True
+
+    def getRowData(self, row):
+        if 0 <= row < self.rowCount():
+            return self._data[row]
+        return None
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
@@ -96,15 +123,39 @@ class Records(QMainWindow, Ui_MainWindow):
         super(Records, self).__init__()
         self.setupUi(self)
         productModel = RecordViewModel(data)
+        self.chosenProductModel = RecordViewModel([])
+
         self.proxyModel = FuzzyFilterProxyModel(self)
         self.proxyModel.setSourceModel(productModel)
         self.productRecordsTable.setModel(self.proxyModel)
         self.productRecordsTable.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
+
+        self.chosenProductsTable.setModel(self.chosenProductModel)
+
         self.marketComboBox.addItem("Hepsi")
         self.marketComboBox.addItems(self.proxyModel.getColumn(0))
         self.marketComboBox.currentTextChanged.connect(self.proxyModel.setStoreFilter)
         self.actionUpload.triggered.connect(self.onMenuAction)
         self.searchLE.textChanged.connect(self.proxyModel.setProductFilter)
+
+        self.chooseButton.clicked.connect(self.addSelectedRow)
+
+    def addSelectedRow(self):
+        selected_indexes = self.productRecordsTable.selectionModel().selectedIndexes()
+        if selected_indexes:
+            selected_row = selected_indexes[0].row()
+            row_data = self.proxyModel.sourceModel().getRowData(selected_row)
+            if self.chosenProductModel.rowCount() < 2:
+                self.chosenProductModel.addRow(row_data)
+
+    def deleteSelectedRow(self):
+        selected_indexes = self.chosenProductsTable.selectionModel().selectedIndexes()
+        if selected_indexes:
+            selected_row = selected_indexes[0].row()
+            self.chosenProductModel.removeRows(selected_row, 1)
+
+    def clearChosenProducts(self):
+        self.chosenProductModel.removeRows(0, 2)
 
     def closeEvent(self, event):
         self.shutdown_trigger.trigger.emit(True)

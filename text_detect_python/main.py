@@ -61,6 +61,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.worker = None
         self.thread = None
+        connectToDB()
 
     def closeEvent(self, event):
         if not os.path.exists("assets"):
@@ -68,6 +69,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         with open("assets/settings.json", "w") as json_file:
             settings = {"recent_files": self.imagePaths, "use_gpu": self.use_gpu}
             json.dump(settings, json_file, indent=4)
+        closeConnection()
         event.accept()
 
     def submitProducts(self):
@@ -78,9 +80,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             product_name = self.productTable.item(row, 0).text()
             product_price = float(self.productTable.item(row, 1).text().replace(",", "."))
             products.append({"shop": shop, "date": date, "product_name": product_name, "price": product_price})
-        connectToDB()
         dbInsert(products)
-        closeConnection()
         msgBox = QMessageBox()
         msgBox.setText("Ürünler veritabanına kaydedildi.")
         msgBox.setWindowTitle("Ürün Kaydı")
@@ -88,9 +88,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def redirectToRecords(self):
         if self.record_window is None:
-            connectToDB()
             products = dbGetAll()
-            closeConnection()
 
             data = [
                 [product["shop"], product["date"], product["product_name"], product["price"]]
