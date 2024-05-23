@@ -12,7 +12,7 @@ from mainwindow_auto import Ui_MainWindow
 from addrowdialog import AddRowDialog
 from records import Records
 from settings import Settings
-from safa_yardim import ocr_image, process_receipt
+from db import *
 import sys
 
 from worker import Worker
@@ -37,6 +37,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.chooseButton.clicked.connect(self.loadImage)
         self.addButton.clicked.connect(self.openRowDialog)
         self.deleteButton.clicked.connect(self.deleteRowFromTable)
+        self.saveButton.clicked.connect(self.submitProducts)
         self.actionKayitlar.triggered.connect(self.redirectToRecords)
         self.actionAyarlar.triggered.connect(self.openSettings)
         self.productTable.setItemDelegate(ValidatorDelegate())
@@ -68,6 +69,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             settings = {"recent_files": self.imagePaths, "use_gpu": self.use_gpu}
             json.dump(settings, json_file, indent=4)
         event.accept()
+
+    def submitProducts(self):
+        products = list()
+        shop = self.marketLE.text().strip()
+        date = self.dateEdit.date().toString("dd/MM/yyyy")
+        for row in range(self.productTable.rowCount()):
+            product_name = self.productTable.item(row, 0).text()
+            product_price = float(self.productTable.item(row, 1).text().replace(",", "."))
+            products.append({"shop": shop, "date": date, "product_name": product_name, "price": product_price})
+        dbInsert(products)
+        msgBox = QMessageBox()
+        msgBox.setText("Ürünler veritabanına kaydedildi.")
+        msgBox.setWindowTitle("Ürün Kaydı")
+        msgBox.exec_()
 
     def redirectToRecords(self):
         if self.record_window is None:
@@ -129,6 +144,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.photoLabel.setPixmap(pixmap.scaled(self.photoLabel.size(),
                                                         Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
+                self.setButtonStates(False)
                 self.worker = Worker(file_path, self.use_gpu)
                 self.thread = QThread()
                 self.worker.moveToThread(self.thread)
@@ -174,6 +190,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.productTable.setItem(row_position, 0, QTableWidgetItem(product_name))
             self.productTable.setItem(row_position, 1, QTableWidgetItem(price))
             row_position += 1
+        self.setButtonStates(True)
 
     def handleEmptyTable(self):
         if self.productTable.rowCount() == 0:
@@ -187,6 +204,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 backend_is_gpu = False if self.use_gpu else True
                 self.setGpuUsage(backend_is_gpu)
                 self.loadImageInternal(self.imagePaths[0], True)
+
+    def setButtonStates(self, status):
+        self.deleteButton.setEnabled(status)
+        self.saveButton.setEnabled(status)
+        self.addButton.setEnabled(status)
 
     def openRowDialog(self):
         dialog = AddRowDialog()
