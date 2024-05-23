@@ -61,7 +61,7 @@ def dbInsert(products_list):
                     if(checkUniqueness(product_entry)):
                        Product.create(**product_entry)
                     else:
-                        error_str += f"{product_entry["product_name"]}\n"
+                        error_str += product_entry["product_name"] + "\n"
         return error_str
     except IntegrityError as fail:
         print(f"Insertion failed: {fail}")
