@@ -94,15 +94,15 @@ def dbCompare(product_entry1, product_entry2):
     product1 = dbSearch(product_entry1)
     product2 = dbSearch(product_entry2)
     
-    if(product1 == None or product2 == None):
+    if product1 is None or product2 is None:
         print("Either one or both of the products don't exist.")
     else:
         print("1st product is more expensive." if product1.price > product2.price else "1st product is cheaper.")
-        if(product1["product_name"] == product2["product_name"] and product1["date"] != product2["date"]):
-            product1_date = dt.strptime(product1["date"], "%d/%m/%y")
-            product2_date = dt.strptime(product2["date"], "%d/%m/%y")
+        if product1.date != product2.date:
+            product1_date = dt.strptime(product1.date, "%d/%m/%Y")
+            product2_date = dt.strptime(product2.date, "%d/%m/%Y")
            
-            valChange = (abs(product1["price"] - product2["price"]) / product2["price"]) * 100.0 if product1_date > product2_date else (abs(product2["price"] - product1["price"]) / product1["price"]) * 100.0
+            valChange = (abs(product1.price - product2.price) / product2.price) * 100.0 if product1_date > product2_date else (abs(product2.price - product1.price) / product1.price) * 100.0
             timeDiff = abs((product1_date - product2_date).days) if product1_date > product2_date else abs((product2_date - product1_date).days)
             return valChange, timeDiff
 

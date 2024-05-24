@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QMainWindow, QHeaderView, QMessageBox
 from thefuzz import fuzz
 
 from records_auto import Ui_MainWindow
+from db import dbCompare
 
 chosen_data = list()
 
@@ -98,20 +99,20 @@ class FuzzyFilterProxyModel(QSortFilterProxyModel):
             if self.store_filter_text.lower() != str(store_data).lower():
                 return False
 
-        if self.product_filter_text:
-            product_index = model.index(source_row, 2, source_parent)
-            product_data = model.data(product_index)
-            if self.chosen_product_text:
-                if fuzz.WRatio(self.product_filter_text, str(product_data).lower()) <= 85 or fuzz.partial_ratio(self.chosen_product_text, str(product_data).lower()) <= 85:
-                    return False
-            else:
-                if fuzz.WRatio(self.product_filter_text, str(product_data).lower()) <= 85:
-                    return False
+        product_index = model.index(source_row, 2, source_parent)
+        product_data = str(model.data(product_index)).lower()
 
-        if not self.product_filter_text and self.chosen_product_text:
-            product_index = model.index(source_row, 2, source_parent)
-            product_data = model.data(product_index)
-            if fuzz.WRatio(self.chosen_product_text, str(product_data).lower()) <= 85:
+        if self.product_filter_text and self.chosen_product_text:
+            if (fuzz.WRatio(self.product_filter_text, product_data) <= 85 or
+                    fuzz.WRatio(self.chosen_product_text, product_data) <= 85):
+                return False
+
+        elif self.product_filter_text:
+            if fuzz.WRatio(self.product_filter_text, product_data) <= 85:
+                return False
+
+        elif self.chosen_product_text:
+            if fuzz.WRatio(self.chosen_product_text, product_data) <= 85:
                 return False
 
         return True
@@ -156,6 +157,7 @@ class Records(QMainWindow, Ui_MainWindow):
 
         self.chooseButton.clicked.connect(self.addSelectedRow)
         self.deleteButton.clicked.connect(self.deleteSelectedRow)
+        self.compareButton.clicked.connect(self.compareChosenProducts)
 
     def addSelectedRow(self):
         selected_indexes = self.productRecordsTable.selectionModel().selectedIndexes()
@@ -170,7 +172,12 @@ class Records(QMainWindow, Ui_MainWindow):
                 self.proxyModel.setChosenProduct(row_data[2])
                 self.chosenProductModel.addRow(row_data)
             elif row_count == 1 and row_data != self.chosenProductModel.getRowData(0):
-                self.chosenProductModel.addRow(row_data)
+                date1 = self.chosenProductModel.getRowData(0)[1]
+                date2 = row_data[1]
+                if date1 != date2:
+                    self.chosenProductModel.addRow(row_data)
+                else:
+                    QMessageBox.warning(self, "Aynı Tarihli Ürün", "Aynı tarihte alınmış ürünleri karşılaştıramazsınız.")
             else:
                 QMessageBox.warning(self, "Ürün Eklenmiş", "Aynı ürünü tekrar seçemezsiniz.")
 
@@ -185,6 +192,15 @@ class Records(QMainWindow, Ui_MainWindow):
             self.proxyModel.setChosenProduct(row_data[2])
         else:
             self.proxyModel.setChosenProduct("")
+
+    def compareChosenProducts(self):
+        if self.chosenProductModel.rowCount() == 2:
+            product1_arr = self.chosenProductModel.getRowData(0)
+            product2_arr = self.chosenProductModel.getRowData(1)
+            product1 = {"shop": product1_arr[0], "date": product1_arr[1], "product_name": product1_arr[2], "price": product1_arr[3]}
+            product2 = {"shop": product2_arr[0], "date": product2_arr[1], "product_name": product2_arr[2], "price": product2_arr[3]}
+            percentage, timediff = dbCompare(product1, product2)
+            print(f"In {timediff} days, there have been a %{percentage} change in the price of this product")
 
     def clearChosenProducts(self):
         self.chosenProductModel.removeRows(0, 2)
