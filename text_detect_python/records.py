@@ -102,16 +102,16 @@ class FuzzyFilterProxyModel(QSortFilterProxyModel):
             product_index = model.index(source_row, 2, source_parent)
             product_data = model.data(product_index)
             if self.chosen_product_text:
-                if fuzz.partial_ratio(self.product_filter_text, str(product_data).lower()) <= 85 or fuzz.partial_ratio(self.chosen_product_text, str(product_data).lower()) <= 85:
+                if fuzz.WRatio(self.product_filter_text, str(product_data).lower()) <= 85 or fuzz.partial_ratio(self.chosen_product_text, str(product_data).lower()) <= 85:
                     return False
             else:
-                if fuzz.partial_ratio(self.product_filter_text, str(product_data).lower()) <= 85:
+                if fuzz.WRatio(self.product_filter_text, str(product_data).lower()) <= 85:
                     return False
 
         if not self.product_filter_text and self.chosen_product_text:
             product_index = model.index(source_row, 2, source_parent)
             product_data = model.data(product_index)
-            if fuzz.partial_ratio(self.chosen_product_text, str(product_data).lower()) <= 85:
+            if fuzz.WRatio(self.chosen_product_text, str(product_data).lower()) <= 85:
                 return False
 
         return True
@@ -160,8 +160,11 @@ class Records(QMainWindow, Ui_MainWindow):
     def addSelectedRow(self):
         selected_indexes = self.productRecordsTable.selectionModel().selectedIndexes()
         if selected_indexes:
-            selected_row = selected_indexes[0].row()
+            selected_index = selected_indexes[0]
+            selected_source_index = self.proxyModel.mapToSource(selected_index)
+            selected_row = selected_source_index.row()
             row_data = self.proxyModel.sourceModel().getRowData(selected_row)
+            
             row_count = self.chosenProductModel.rowCount()
             if row_count < 2:
                 self.chosenProductModel.addRow(row_data)
