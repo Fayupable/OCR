@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QMainWindow, QHeaderView, QMessageBox
 from thefuzz import fuzz
 
 from records_auto import Ui_MainWindow
-from db import dbCompare
+from db import dbCompare, exportXML, dbGetAll
 
 chosen_data = list()
 
@@ -153,6 +153,7 @@ class Records(QMainWindow, Ui_MainWindow):
         self.marketComboBox.addItems(self.proxyModel.getColumn(0))
         self.marketComboBox.currentTextChanged.connect(self.proxyModel.setStoreFilter)
         self.actionUpload.triggered.connect(self.onMenuAction)
+        self.actionExport.triggered.connect(self.exportToXML)
         self.searchLE.textChanged.connect(self.proxyModel.setProductFilter)
 
         self.chooseButton.clicked.connect(self.addSelectedRow)
@@ -201,10 +202,17 @@ class Records(QMainWindow, Ui_MainWindow):
             product2 = {"shop": product2_arr[0], "date": product2_arr[1], "product_name": product2_arr[2], "price": product2_arr[3]}
             percentage, timediff = dbCompare(product1, product2)
             result_str = f"Aradaki {timediff} günde, bu üründe %{percentage} fiyat değişimi gerçekleşmiş."
-            msgBox = QMessageBox()
+            msgBox = QMessageBox(self)
             msgBox.setWindowTitle("Fiyat Değişimi")
             msgBox.setText(f"Bu iki ürünü seçtiniz:\n{product1_arr[2]}\n{product2_arr[2]}\n{result_str}")
             msgBox.exec_()
+
+    def exportToXML(self):
+        exportXML(dbGetAll())
+        msgBox = QMessageBox(self)
+        msgBox.setWindowTitle("Dışarı aktarma")
+        msgBox.setText("Veritabanındaki ürünler \"assets/products.xml\" dizinine kaydedildi.")
+        msgBox.exec_()
 
     def clearChosenProducts(self):
         self.chosenProductModel.removeRows(0, 2)
