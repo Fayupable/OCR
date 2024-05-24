@@ -211,7 +211,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setButtonStates(True)
 
     def handleEmptyTable(self):
-        if self.productTable.rowCount() == 0:
+        if self.productTable.rowCount() == 0 and torch.cuda.is_available():
             backend_str = "GPU" if self.use_gpu else "CPU"
             fallback_str = "CPU" if self.use_gpu else "GPU"
             result = QMessageBox.question(self, "Boş Sepet", f"{backend_str} backend'i ile herhangi bir ürün "

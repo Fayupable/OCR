@@ -200,7 +200,11 @@ class Records(QMainWindow, Ui_MainWindow):
             product1 = {"shop": product1_arr[0], "date": product1_arr[1], "product_name": product1_arr[2], "price": product1_arr[3]}
             product2 = {"shop": product2_arr[0], "date": product2_arr[1], "product_name": product2_arr[2], "price": product2_arr[3]}
             percentage, timediff = dbCompare(product1, product2)
-            print(f"In {timediff} days, there have been a %{percentage} change in the price of this product")
+            result_str = f"Aradaki {timediff} günde, bu üründe %{percentage} fiyat değişimi gerçekleşmiş."
+            msgBox = QMessageBox()
+            msgBox.setWindowTitle("Fiyat Değişimi")
+            msgBox.setText(f"Bu iki ürünü seçtiniz:\n{product1_arr[2]}\n{product2_arr[2]}\n{result_str}")
+            msgBox.exec_()
 
     def clearChosenProducts(self):
         self.chosenProductModel.removeRows(0, 2)
