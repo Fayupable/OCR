@@ -81,8 +81,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pattern = r"(\d{1,3}[.,\s]?\d{0,3})\s*K[C]?[G]?\s*[xX\s]\s*(\d{1,3}[.,\s]?\d{0,2})\s*TL[\/I]?[K]?[G]?\s*(.+?)\s*[%]?[#l1]?(\d+)|(.+?)\s*[%#l1](\d+)\s*[xX]\s*(\d{1,3}[.,\s]?\d{0,2})\s*TL\s*(\d{1,3}[.,\s]?\d{0,3})\s*K[CG]?\s*(.+?)\s*[%#l1]?(\d+)"
         for row in range(self.productTable.rowCount()):
             product_name = self.productTable.item(row, 0).text()
-            product_price = float(self.productTable.item(row, 1).text().replace(",", "."))
-
+            try:
+                product_price = float(self.productTable.item(row, 1).text().replace(",", "."))
+            except ValueError:
+                product_price = float(self.productTable.item(row, 1).text().replace(" ", "."))
             match = re.search(pattern, product_name)
             if match:
                 product_name = match.group(3)
