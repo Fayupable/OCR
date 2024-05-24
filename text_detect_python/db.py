@@ -92,11 +92,14 @@ def dbUpdate(product_entry, shop = None, date = None, product_name = None, price
 def dbCompare(product_entry1, product_entry2):
     product1 = dbSearch(product_entry1)
     product2 = dbSearch(product_entry2)
-
+    
     if(product1 == None or product2 == None):
         print("Either one or both of the products don't exist.")
     else:
         print("1st product is more expensive." if product1.price > product2.price else "1st product is cheaper.")
+        if(product1["product_name"] == product2["product_name"] and product1["date"] != product2["date"]):
+            diff = abs(product1["price"] - product2["price"])
+            print(f"There is been {diff} TL change in this items value between dates: {product1["date"]} - {product2["date"]}")
 
 
 def dbGetAll():
