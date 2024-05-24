@@ -97,7 +97,6 @@ def dbCompare(product_entry1, product_entry2):
     if product1 is None or product2 is None:
         print("Either one or both of the products don't exist.")
     else:
-        print("1st product is more expensive." if product1.price > product2.price else "1st product is cheaper.")
         if product1.date != product2.date:
             product1_date = dt.strptime(product1.date, "%d/%m/%Y")
             product2_date = dt.strptime(product2.date, "%d/%m/%Y")
