@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant, QObject, pyqtSignal, QSortFilterProxyModel, QModelIndex
-from PyQt5.QtWidgets import QMainWindow, QHeaderView
+from PyQt5.QtWidgets import QMainWindow, QHeaderView, QMessageBox
 from thefuzz import fuzz
 
 from records_auto import Ui_MainWindow
@@ -166,11 +166,13 @@ class Records(QMainWindow, Ui_MainWindow):
             row_data = self.proxyModel.sourceModel().getRowData(selected_row)
 
             row_count = self.chosenProductModel.rowCount()
-            if row_count < 2:
-                self.chosenProductModel.addRow(row_data)
-
             if row_count == 0:
                 self.proxyModel.setChosenProduct(row_data[2])
+                self.chosenProductModel.addRow(row_data)
+            elif row_count == 1 and row_data != self.chosenProductModel.getRowData(0):
+                self.chosenProductModel.addRow(row_data)
+            else:
+                QMessageBox.warning(self, "Ürün Eklenmiş", "Aynı ürünü tekrar seçemezsiniz.")
 
     def deleteSelectedRow(self):
         selected_indexes = self.chosenProductsTable.selectionModel().selectedIndexes()
