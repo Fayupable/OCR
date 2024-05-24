@@ -1,7 +1,6 @@
 from peewee import *
 import xml.etree.ElementTree as ET
 from datetime import datetime as dt
-from datetime import timedelta as td
 # Instantiates a database file with the given name. Variable will be passed into most of the functions defined below.
 # Main flow should probably only include this as a text, other functions can be imported.
 
@@ -103,8 +102,8 @@ def dbCompare(product_entry1, product_entry2):
             product1_date = dt.strptime(product1["date"], "%d/%m/%y")
             product2_date = dt.strptime(product2["date"], "%d/%m/%y")
            
-           valChange = (abs(product1["price"] - product2["price"]) / product2["price"]) * 100.0 if product1_date > product2_date else (abs(product2["price"] - product1["price"]) / product1["price"]) * 100.0
-            timeDiff = product1_date - timedelta(product2_date) if product1_date > product2_date else product2_date - timedelta(product1_date)
+            valChange = (abs(product1["price"] - product2["price"]) / product2["price"]) * 100.0 if product1_date > product2_date else (abs(product2["price"] - product1["price"]) / product1["price"]) * 100.0
+            timeDiff = abs((product1_date - product2_date).days) if product1_date > product2_date else abs((product2_date - product1_date).days)
             return valChange, timeDiff
 
 
