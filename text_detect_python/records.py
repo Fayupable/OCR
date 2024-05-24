@@ -145,9 +145,11 @@ class Records(QMainWindow, Ui_MainWindow):
         self.proxyModel.setSourceModel(productModel)
         self.productRecordsTable.setModel(self.proxyModel)
         self.productRecordsTable.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        self.productRecordsTable.horizontalHeader().setStretchLastSection(True)
 
         self.chosenProductsTable.setModel(self.chosenProductModel)
         self.chosenProductsTable.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        self.chosenProductsTable.horizontalHeader().setStretchLastSection(True)
 
         self.marketComboBox.addItem("Hepsi")
         self.marketComboBox.addItems(self.proxyModel.getColumn(0))
