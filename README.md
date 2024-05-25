@@ -11,7 +11,7 @@ This project is a comprehensive Python application designed for managing and int
 3. [Modules](#modules)
 4. [Contributing](#contributing)
 
-**#Installation**
+# **Installation**
 To install the required dependencies, use the following command:
 
 bash
