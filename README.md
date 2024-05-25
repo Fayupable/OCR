@@ -16,9 +16,10 @@ To install the required dependencies, use the following command:
 
 bash
 Copy code
-'''
+```
 pip install -r requirements.txt
-'''
+```
+
 Usage
 Run the main application script with:
 
