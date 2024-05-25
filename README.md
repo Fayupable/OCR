@@ -16,6 +16,7 @@ To install the required dependencies, use the following command:
 
 bash
 Copy code
+
 **Windows**
 ```
 pip install -r requirements_win32.txt
