@@ -5,7 +5,7 @@ OCR/Receipt
 **Overview**
 This project is a comprehensive Python application designed for managing and interacting with data records through a graphical user interface. It includes modules for database operations, GUI components, and application settings.
 
-**Table of Contents**
+# **Table of Contents**
 1. [Installation](#installation)
 2. [Usage](#usage)
 3. [Modules](#modules)
@@ -20,7 +20,7 @@ Copy code
 pip install -r requirements.txt
 ```
 
-**Usage**
+# **Usage**
 Run the main application script with:
 
 bash
@@ -28,7 +28,7 @@ Copy code
 python main.py
 This will start the application, initializing the main window and setting up the necessary components.
 
-**Modules**
+# **Modules**
 1. `addrowdialog_auto.py`
 Automatically generated code for the Add Row Dialog component, handling GUI elements and layout for adding new rows.
 
@@ -59,5 +59,5 @@ Automatically generated code for the Settings component, handling GUI elements a
 10. `settings.py`
 Custom logic for managing application settings, allowing users to configure and save their preferences, which are then applied to the application.
 
-**Contributing**
+# **Contributing**
 We welcome contributions! Please fork the repository and submit pull requests. For major changes, open an issue first to discuss what you would like to change.
