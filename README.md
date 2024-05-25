@@ -1,19 +1,17 @@
 # OCR
 OCR/Receipt
 
-**Overview**
 
+**Overview**
 This project is a comprehensive Python application designed for managing and interacting with data records through a graphical user interface. It includes modules for database operations, GUI components, and application settings.
 
 **Table of Contents**
-
 1. [Installation](#installation)
 2. [Usage](#usage)
-3. [Modules](#modules) 
+3. [Modules](#modules)
 4. [Contributing](#contributing)
 
-
-**Installation**
+**#Installation**
 To install the required dependencies, use the following command:
 
 bash
