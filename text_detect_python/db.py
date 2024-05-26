@@ -18,8 +18,6 @@ class Product(Model):
 
 
 # Function to see if given table exists in DB or not, will return boolean for if clause usage
-def existingTable(model):
-    return productsDB.table_exists(model._meta.table_name)
 
 
 def connectToDB():
