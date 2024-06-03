@@ -14,9 +14,6 @@ This project is a comprehensive Python application designed for managing and int
 # **Installation**
 To install the required dependencies, use the following command:
 
-bash
-Copy code
-
 **Windows**
 ```
 pip install -r requirements_win32.txt
@@ -29,9 +26,10 @@ pip install -r requirements_macOS.txt
 # **Usage**
 Run the main application script with:
 
-bash
-Copy code
+```
 python main.py
+```
+
 This will start the application, initializing the main window and setting up the necessary components.
 
 # **Modules**
